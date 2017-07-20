@@ -1,4 +1,4 @@
-CFLAGS = -Wall -pedantic -ansi
+CFLAGS = -Wall -pedantic 
 
 all: my_shell
 
