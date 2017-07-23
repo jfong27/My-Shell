@@ -18,7 +18,7 @@
  *
  *************************************************/
 void run_shell(){
-
+   /*Still have to free cmd args*/
    char **cmd = NULL;
    int status = 0;
    while(status != -1){
@@ -26,6 +26,7 @@ void run_shell(){
       status = execute(cmd);
    }
 
+   free(cmd);
 }
 
 /**************************************************
@@ -45,8 +46,6 @@ char **read_cline(){
 
    printf(">> ");
    command = read_line(stdin);
-
-   printf("command: %s\n", command);
 
    split = strtok(command, " ");
    while(split != NULL){
@@ -71,6 +70,8 @@ int new_process(char **cmd){
 
    pid = fork();
    if(pid == 0){
+      if(strcmp(cmd[0],"tree")==0)
+         execl("./tree", "cmd");
       execvp(cmd[0],cmd);
       perror("Exec");
    }
@@ -86,7 +87,7 @@ int new_process(char **cmd){
 
 
 int execute(char **args){
-   int exists = -1;
+   int builtin = 1;
    int i;
    int status = 0;
 
@@ -94,14 +95,15 @@ int execute(char **args){
       for(i = 0; i < num_builtins(); i++){
          if(strcmp(args[0], builtin_str[i])==0){
             status = (*builtin_func[i])(args);
-            exists = 0;
+            builtin = 0;
          }
       }
-
+      if(builtin == 1)
+         status = new_process(args);
    }
-
-   if(exists == -1)
-      fprintf(stderr, "-myshell: %s: command not found\n", args[0]);
+   else{
+      status = -1;
+   }
 
    return status;
 
@@ -136,7 +138,7 @@ char *read_line(FILE *input){
       c = getc(input);
    }
    *(buffer+pos) = '\0';
-   
+
    return buffer;
 }
 
@@ -145,15 +147,25 @@ int num_builtins(){
 }
 
 int my_cd(char **args){
-   printf("MY CHOOSE DIRECTORY\n");
+   int status;
 
-   return 0;
+   if(args[1] == NULL){
+      fprintf(stderr, "Usage: cd [directory]\n");
+      status = -1;
+   }
+   else{
+      status = chdir(args[1]);
+      if(status != 0)
+         fprintf(stderr, "cd: %s: No such file or directory\n", args[1]);
+   }
+
+   return status;
 }
 
 int my_exit(char **args){
-   printf("MY EXIT\n");
+   printf("Closing shell...\n");
 
-   return 0;
+   return -1;
 }
 
 void *checked_malloc(size_t spaces){
