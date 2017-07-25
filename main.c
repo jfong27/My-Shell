@@ -93,8 +93,10 @@ void split_command(char *command, char **args){
       }
       cmd++;
    }
+   curr_arg[curr_arg_pos] = '\0';
+   args[arg_pos] = curr_arg;
 
-   args[arg_pos] = 0;
+   args[arg_pos+1] = 0;
 
    free(command);
 
@@ -121,7 +123,6 @@ int new_process(char **cmd){
       }
       else{
          execvp(cmd[0],cmd);
-         fprintf(stderr, "asdf");
          perror("Exec");
          exit(-1);
       }
@@ -202,7 +203,7 @@ int my_cd(char **args){
 
    if(args[1] == NULL){
       fprintf(stderr, "Usage: cd [directory]\n");
-      status = -1;
+      status = 0;
    }
    else{
       status = chdir(args[1]);
@@ -213,11 +214,25 @@ int my_cd(char **args){
    return status;
 }
 
-int my_exit(char **args){
+int my_exit(){
    printf("Closing shell...\n");
 
    return -1;
 }
+
+int my_ls(char **args){
+   
+   printf("ls\n");
+   return 0;
+}
+
+int my_pwd(char **args){
+
+   printf("%s\n",getcwd(0,0));
+
+   return 0;
+}
+
 
 void *checked_malloc(size_t spaces){
    void *space = malloc(spaces);
