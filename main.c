@@ -39,20 +39,65 @@ void run_shell(){
  *************************************************/
 
 char **read_cline(){
+   int num_args = 10;
    char *command;
-   char *split;
-   char **cmd_args = checked_malloc(sizeof(char*) * 10);
-   int i = 0;
+   char **cmd_args = checked_malloc(sizeof(char*) * num_args);
 
    printf(">> ");
    command = read_line(stdin);
 
-   split = strtok(command, " ");
-   while(split != NULL){
-      cmd_args[i++] = split;
-      split = strtok(NULL, " ");
-   }
+   split_command(command, cmd_args);
    return cmd_args;
+
+}
+
+void split_command(char *command, char **args){
+   int arg_pos = 0;
+   int curr_arg_pos = 0;
+   int quote = 0;
+   int arg_len = 10;
+   char *cmd = command;
+   char *curr_arg = checked_malloc(sizeof(char*)* arg_len);
+   
+   while(*cmd != '\0'){
+      if(*cmd == '"'){
+         if(quote == 0){
+            /*start a quote*/
+            quote = 1;
+         }
+         else{
+            /*quote ending, end arg*/
+            curr_arg[curr_arg_pos] = '\0';
+            args[arg_pos++] = curr_arg;
+            curr_arg = checked_malloc(sizeof(char*) * 10);
+            curr_arg_pos = 0;
+            arg_len = 10;
+         }
+
+      }
+      else if(*cmd == ' ' && quote == 0){
+         /*end arg*/
+         curr_arg[curr_arg_pos] = '\0';
+         args[arg_pos++] = curr_arg;
+         curr_arg = checked_malloc(sizeof(char*) * 10);
+         curr_arg_pos = 0;
+         arg_len = 10;
+      }
+      else{
+         curr_arg[curr_arg_pos++] = *cmd;
+         if(curr_arg_pos >= arg_len - 1){
+            arg_len += 5;
+            curr_arg = realloc(curr_arg, arg_len);
+         }
+         
+      }
+      cmd++;
+   }
+
+   args[arg_pos] = 0;
+
+   free(command);
+
 
 }
 /**************************************************
@@ -70,10 +115,16 @@ int new_process(char **cmd){
 
    pid = fork();
    if(pid == 0){
-      if(strcmp(cmd[0],"tree")==0)
+      if(strcmp(cmd[0],"tree")==0){
          execl("./tree", "cmd");
-      execvp(cmd[0],cmd);
-      perror("Exec");
+         perror("Tree");
+      }
+      else{
+         execvp(cmd[0],cmd);
+         fprintf(stderr, "asdf");
+         perror("Exec");
+         exit(-1);
+      }
    }
    else if(pid > 0){
       waitpid(pid,&status,0);

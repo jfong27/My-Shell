@@ -9,6 +9,7 @@
 
 void run_shell();
 char **read_cline();
+void split_command(char *cmd, char **args);
 int new_process(char **cmd);
 int execute(char **args);
 char *read_line(FILE *input);
@@ -20,6 +21,18 @@ int my_exit(char **args);
 char *builtin_str[] = {
    "cd",
    "exit"
+      /*
+       * ls
+       * pwd
+       * allow for quoting and
+       * backslash escape
+       * piping and
+       * redirecting
+       * tab-complete
+       * wildcards
+       * include other programs
+       * from 357
+       */
 };
 int (*builtin_func[]) (char **) = {
    &my_cd,
